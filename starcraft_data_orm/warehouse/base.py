@@ -1,5 +1,5 @@
-from sqlalchemy.ext.declarative import as_declarative, declared_attr, DeclarativeMeta
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.ext.declarative import declared_attr, DeclarativeMeta
+from sqlalchemy.orm import declarative_base, as_declarative
 from sqlalchemy import MetaData
 
 from abc import ABCMeta
