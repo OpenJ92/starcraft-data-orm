@@ -9,7 +9,8 @@ class UnitTypeFactory(Factory):
         model = unit_type
 
     release_string = "1.0.0"
-    id = Sequence(lambda n: n)
+    primary_id = Sequence(lambda n: n)
+    id = Faker("random_int", min=0, max=500)
     str_id = Faker("word")
     name = Faker("name")
     title = Faker("name")
