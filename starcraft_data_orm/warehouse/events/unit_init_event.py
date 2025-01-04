@@ -30,31 +30,31 @@ class unit_init_event(Injectable, WarehouseBase):
         return "events"
 
     @classmethod
-    def process(cls, replay, session):
+    async def process(cls, replay, session):
        events = replay.events_dictionary['UnitInitEvent']
 
        _events = []
        for event in events:
            data = cls.get_data(event)
-           parents =  cls.process_dependancies(event, replay, session)
+           parents = await cls.process_dependancies(event, replay, session)
 
            _events.append(cls(**data, **parents))
 
        session.add_all(_events)
 
     @classmethod
-    def process_dependancies(cls, event, replay, session):
+    async def process_dependancies(cls, event, replay, session):
        _info, _unit = replay.filehash, event.unit_id
        parents = defaultdict(lambda:None)
 
        info_statement = select(info).where(info.filehash == _info)
-       info_result =  session.execute(info_statement)
+       info_result = await session.execute(info_statement)
        _info = info_result.scalar()
        parents['info_id'] = _info.primary_id
 
        unit_statement = select(object).where(
                and_(object.info_id == _info.primary_id, object.id == _unit))
-       unit_result =  session.execute(unit_statement)
+       unit_result = await session.execute(unit_statement)
        _unit = unit_result.scalar()
        parents['unit_id'] = _unit.primary_id
 

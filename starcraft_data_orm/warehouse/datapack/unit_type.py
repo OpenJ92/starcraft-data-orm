@@ -35,8 +35,8 @@ class unit_type(WarehouseBase, Injectable):
         return "datapack"
 
     @classmethod
-    def process(cls, replay, session):
-        if cls.process_existence(replay, session):
+    async def process(cls, replay, session):
+        if await cls.process_existence(replay, session):
             return
 
         units = []
@@ -46,9 +46,9 @@ class unit_type(WarehouseBase, Injectable):
         session.add_all(units)
 
     @classmethod
-    def process_existence(cls, replay, session):
+    async def process_existence(cls, replay, session):
         statement = select(cls).where(cls.release_string == replay.release_string)
-        result = session.execute(statement)
+        result = await session.execute(statement)
         return result.first()
 
     @classmethod

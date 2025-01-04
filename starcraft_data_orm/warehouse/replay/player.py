@@ -7,8 +7,8 @@ from collections import defaultdict
 
 from starcraft_data_orm.warehouse.replay.info import info
 from starcraft_data_orm.warehouse.replay.user import user
-from starcraft_data_orm.inject import Injectable
 from starcraft_data_orm.warehouse.base import WarehouseBase
+from starcraft_data_orm.inject import Injectable
 
 class player(Injectable, WarehouseBase):
     __tablename__ = "player"
@@ -50,27 +50,27 @@ class player(Injectable, WarehouseBase):
         return "replay"
 
     @classmethod
-    def process(cls, replay, session):
+    async def process(cls, replay, session):
        players = []
        for player in replay.players:
            data = cls.get_data(player)
            data["scaled_rating"]= player.init_data.get("scaled_rating")
-           parents =  cls.process_dependancies(player, replay, session)
+           parents = await cls.process_dependancies(player, replay, session)
            players.append(cls(**data, **parents))
 
        session.add_all(players)
 
     @classmethod
-    def process_dependancies(cls, obj, replay, session):
+    async def process_dependancies(cls, obj, replay, session):
        _uid, _filehash = obj.detail_data.get("bnet").get("uid"), replay.filehash
        parents = defaultdict(lambda:None)
 
        user_statement = select(user).where(user.uid == _uid)
-       user_result =  session.execute(user_statement)
+       user_result = await session.execute(user_statement)
        _user = user_result.scalar()
 
        info_statement = select(info).where(info.filehash == _filehash)
-       info_result =  session.execute(info_statement)
+       info_result = await session.execute(info_statement)
        _info = info_result.scalar()
 
        parents['user_id'] = _user.primary_id

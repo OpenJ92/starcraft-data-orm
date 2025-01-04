@@ -36,30 +36,30 @@ class chat_event(Injectable, WarehouseBase):
         return "events"
 
     @classmethod
-    def process(cls, replay, session):
+    async def process(cls, replay, session):
        events = replay.events_dictionary['ChatEvent']
 
        _events = []
        for event in events:
            data = cls.get_data(event)
-           parents =  cls.process_dependancies(event, replay, session)
+           parents = await cls.process_dependancies(event, replay, session)
 
            _events.append(cls(**data, **parents))
 
        session.add_all(_events)
 
     @classmethod
-    def process_dependancies(cls, event, replay, session):
+    async def process_dependancies(cls, event, replay, session):
        _player, _info = event.player.pid, replay.filehash
        parents = defaultdict(lambda:None)
 
        info_statement = select(info).where(info.filehash == _info)
-       info_result =  session.execute(info_statement)
+       info_result = await session.execute(info_statement)
        _info = info_result.scalar()
        parents['info_id'] = _info.primary_id
 
        player_statement = select(player).where(and_(player.pid == _player, player.info_id == _info.primary_id))
-       player_result =  session.execute(player_statement)
+       player_result = await session.execute(player_statement)
        _player = player_result.scalar()
        parents['player_id'] = _player.primary_id
 

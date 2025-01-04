@@ -4,8 +4,8 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import relationship
 
 from starcraft_data_orm.warehouse.datapack.unit_type import unit_type
-from starcraft_data_orm.inject import Injectable
 from starcraft_data_orm.warehouse.base import WarehouseBase
+from starcraft_data_orm.inject import Injectable
 
 
 class ability(Injectable, WarehouseBase):
@@ -35,33 +35,33 @@ class ability(Injectable, WarehouseBase):
         return "datapack"
 
     @classmethod
-    def process(cls, replay, session):
-        if cls.process_existence(replay, session):
+    async def process(cls, replay, session):
+        if await cls.process_existence(replay, session):
             return
 
         abilities = []
         for _, ability in replay.datapack.abilities.items():
             data = cls.get_data(ability)
-            parents = cls.process_dependancies(ability, replay, session)
+            parents = await cls.process_dependancies(ability, replay, session)
             abilities.append(cls(release_string=replay.release_string, **data, **parents))
 
         session.add_all(abilities)
 
     @classmethod
-    def process_existence(cls, replay, session):
+    async def process_existence(cls, replay, session):
         statement = select(cls).where(cls.release_string == replay.release_string)
-        result = session.execute(statement)
+        result = await session.execute(statement)
         return result.scalar()
 
     @classmethod
-    def process_dependancies(cls, ability, replay, session):
+    async def process_dependancies(cls, ability, replay, session):
         unit = ability.build_unit
         if not unit:
             return { "unit_type_id" : None }
 
         statement = select(unit_type).where(
                 and_(unit_type.release_string == replay.release_string, unit_type.id == unit.id))
-        result    = session.execute(statement)
+        result    = await session.execute(statement)
         unit      = result.scalar()
 
         if not unit:

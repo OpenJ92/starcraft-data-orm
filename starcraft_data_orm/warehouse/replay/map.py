@@ -27,8 +27,8 @@ class map(Injectable, WarehouseBase):
         return "replay"
 
     @classmethod
-    def process(cls, replay, session):
-        if  cls.process_existence(replay.map_hash, session):
+    async def process(cls, replay, session):
+        if await cls.process_existence(replay.map_hash, session):
             return
 
         # Load map if not exists
@@ -38,9 +38,9 @@ class map(Injectable, WarehouseBase):
         session.add(cls(**data))
 
     @classmethod
-    def process_existence(cls, filehash, session):
+    async def process_existence(cls, filehash, session):
        statement = select(cls).where(cls.filehash == filehash)
-       result =  session.execute(statement)
+       result = await session.execute(statement)
        return result.scalar()
 
     columns = \

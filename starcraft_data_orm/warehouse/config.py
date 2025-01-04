@@ -1,6 +1,8 @@
 import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker
 
 # Base Configuration Class
 class Config:
@@ -47,9 +49,13 @@ configurations = {
 ENV = os.getenv("APP_ENV", "development")  # Default to 'development' if APP_ENV is not set
 CurrentConfig = configurations[ENV]
 
+from sqlalchemy.engine.url import make_url
+
 # Initialize SQLAlchemy Engine
 # Create an async engine
-engine = create_engine(CurrentConfig.get_connection_string())
+_engine = create_engine(CurrentConfig.get_connection_string())
+engine = create_async_engine(CurrentConfig.get_connection_string(async_mode=True), echo=True)
 
 # Create a Session Factory
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SyncSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)
+SessionLocal = async_sessionmaker(autocommit=False, autoflush=False, bind=engine)

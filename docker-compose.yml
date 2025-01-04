@@ -1,3 +1,7 @@
+networks:
+  starcraft-network:
+    driver: bridge
+
 services:
   app:
     build:
@@ -17,6 +21,8 @@ services:
       - db
     tty: true  # Keeps container open for interaction
     command: ["bash"]
+    networks:
+      - starcraft-network
 
   db:
     image: postgres:13
@@ -29,6 +35,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - starcraft-network
 
 volumes:
   postgres_data:

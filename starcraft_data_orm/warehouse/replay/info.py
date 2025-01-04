@@ -70,27 +70,27 @@ class info(Injectable, WarehouseBase):
         return "replay"
 
     @classmethod
-    def process(cls, replay, session):
-        if  cls.process_existence(replay, session):
+    async def process(cls, replay, session):
+        if await cls.process_existence(replay, session):
             raise ReplayExistsError(replay.filehash)
 
         data = cls.get_data(replay)
-        parents =  cls.process_dependancies(replay, replay, session)
+        parents = await cls.process_dependancies(replay, replay, session)
 
         session.add(cls(**data, **parents))
 
     @classmethod
-    def process_existence(cls, replay, session):
+    async def process_existence(cls, replay, session):
        statement = select(cls).where(cls.filehash == replay.filehash)
-       result =  session.execute(statement)
+       result = await session.execute(statement)
        return result.scalar()
 
     @classmethod
-    def process_dependancies(cls, obj, replay, session):
+    async def process_dependancies(cls, obj, replay, session):
        _map, parents = obj.map_hash, defaultdict(lambda: None)
 
        statement = select(map).where(map.filehash == _map)
-       result    =  session.execute(statement)
+       result    = await session.execute(statement)
        _map      = result.scalar()
 
        if not _map:

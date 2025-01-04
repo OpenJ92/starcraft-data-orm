@@ -60,11 +60,11 @@ class object(Injectable, WarehouseBase):
         return "replay"
 
     @classmethod
-    def process(cls, replay, session):
+    async def process(cls, replay, session):
        _objects = []
        for _, obj in replay.objects.items():
            data = cls.get_data(obj)
-           parents =  cls.process_dependancies(obj, replay, session)
+           parents = await cls.process_dependancies(obj, replay, session)
            if not parents:
                continue
 
@@ -73,18 +73,18 @@ class object(Injectable, WarehouseBase):
        session.add_all(_objects)
 
     @classmethod
-    def process_dependancies(cls, obj, replay, session):
+    async def process_dependancies(cls, obj, replay, session):
        _unit, _info, _player = obj._type_class, replay.filehash, obj.owner
        parents = defaultdict(lambda:None)
 
        unit_statement = select(unit_type).where(
                and_(unit_type.release_string == replay.release_string, unit_type.id == _unit.id))
-       unit_result =  session.execute(unit_statement)
+       unit_result = await session.execute(unit_statement)
        _unit = unit_result.scalar()
        parents["unit_type_id"] = _unit.primary_id
 
        info_statement = select(info).where(info.filehash == _info)
-       info_result =  session.execute(info_statement)
+       info_result = await session.execute(info_statement)
        _info = info_result.scalar()
        parents["info_id"] = _info.primary_id
 
@@ -93,7 +93,7 @@ class object(Injectable, WarehouseBase):
            return parents
        player_statement = select(player).where(
                        and_(player.info_id == _info.primary_id, player.pid == _player.pid))
-       player_result =  session.execute(player_statement)
+       player_result = await session.execute(player_statement)
        _player = player_result.scalar()
 
        parents["owner_id"] = _player.primary_id

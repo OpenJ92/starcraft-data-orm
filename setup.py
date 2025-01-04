@@ -5,7 +5,7 @@ with open("requirements.txt", "r") as f:
 
 setup(
     name="starcraft-data-orm",  # Your package name
-    version="0.1.0",  # Version number
+    version="0.1.1",  # Version number
     description="A Python package for StarCraft replay data ORM integration.",
     long_description=open("README.md").read(),
     long_description_content_type="text/markdown",
