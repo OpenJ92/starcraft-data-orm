@@ -6,10 +6,10 @@ from sqlalchemy.orm import relationship
 from starcraft_data_orm.inject import Injectable
 from starcraft_data_orm.warehouse.base import WarehouseBase
 
+
 class user(Injectable, WarehouseBase):
     __tablename__ = "user"
-    __table_args__ = ( UniqueConstraint("uid", name="uid_unique")
-                     , { "schema": 'replay' } )
+    __table_args__ = (UniqueConstraint("uid", name="uid_unique"), {"schema": "replay"})
 
     primary_id = Column(Integer, primary_key=True)
 
@@ -37,25 +37,19 @@ class user(Injectable, WarehouseBase):
 
         session.add_all(users)
 
-
     @classmethod
     async def process_existence(cls, obj, session):
-        statement = select(cls).where(cls.uid == obj.detail_data['bnet']['uid'])
+        statement = select(cls).where(cls.uid == obj.detail_data["bnet"]["uid"])
         result = await session.execute(statement)
         return result.scalar()
 
     @classmethod
     def get_data(cls, obj):
-        return { "name"      : obj.name
-               , "uid"       : obj.detail_data.get("bnet").get("uid")
-               , "region"    : obj.detail_data.get("bnet").get("region")
-               , "subregion" : obj.detail_data.get("bnet").get("subregion")
-               }
-
-    columns = \
-        { "name"
-        , "uid"
-        , "region"
-        , "subregion"
+        return {
+            "name": obj.name,
+            "uid": obj.detail_data.get("bnet").get("uid"),
+            "region": obj.detail_data.get("bnet").get("region"),
+            "subregion": obj.detail_data.get("bnet").get("subregion"),
         }
 
+    columns = {"name", "uid", "region", "subregion"}

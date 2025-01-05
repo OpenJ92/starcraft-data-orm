@@ -19,15 +19,18 @@ sc2reader.engine.register_plugin(APMTracker())
 sc2reader.engine.register_plugin(ContextLoader())
 sc2reader.engine.register_plugin(GameHeartNormalizer())
 
+
 async def main():
     initialize_warehouse()
     test_sync_connection()
     await test_async_connection()
 
+
 def test_sync_connection():
     with SyncSessionLocal() as session:
         result = session.execute(text("SELECT 1;"))
         print(result.scalar())  # Should print 1
+
 
 async def test_async_connection():
     async with SessionLocal() as session:

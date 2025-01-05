@@ -5,6 +5,7 @@ from starcraft_data_orm.warehouse.datapack.ability import ability
 from tests.test_warehouse.test_datapack.unit_type_factory import UnitTypeFactory
 from tests.test_warehouse.test_datapack.ability_factory import AbilityFactory
 
+
 @pytest.mark.asyncio
 async def test_process_existence():
     # Arrange
@@ -23,6 +24,7 @@ async def test_process_existence():
     assert result is not None
     mock_session.execute.assert_called_once()
 
+
 @pytest.mark.asyncio
 async def test_process_dependancies():
     # Arrange
@@ -38,11 +40,14 @@ async def test_process_dependancies():
     mock_session.execute.return_value = mock_execute_result
 
     # Act
-    parents = await ability.process_dependancies(mock_ability, mock_replay, mock_session)
+    parents = await ability.process_dependancies(
+        mock_ability, mock_replay, mock_session
+    )
 
     # Assert
-    assert parents == { "unit_type_id": 42 }
+    assert parents == {"unit_type_id": 42}
     mock_session.execute.assert_called_once()
+
 
 @pytest.mark.asyncio
 async def test_process():
@@ -61,13 +66,17 @@ async def test_process():
     mock_session = AsyncMock()
     mock_session.add_all = MagicMock()
 
-    mock_execute_results = iter([
-        MagicMock(scalar=MagicMock(return_value=None)),
-        MagicMock(scalar=MagicMock(return_value=unit_1)),  # First call
-        MagicMock(scalar=MagicMock(return_value=unit_2)),  # Second call
-    ])
+    mock_execute_results = iter(
+        [
+            MagicMock(scalar=MagicMock(return_value=None)),
+            MagicMock(scalar=MagicMock(return_value=unit_1)),  # First call
+            MagicMock(scalar=MagicMock(return_value=unit_2)),  # Second call
+        ]
+    )
 
-    mock_session.execute.side_effect = lambda *args, **kwargs: next(mock_execute_results)
+    mock_session.execute.side_effect = lambda *args, **kwargs: next(
+        mock_execute_results
+    )
 
     # Act
     await ability.process(mock_replay, mock_session)
@@ -83,5 +92,3 @@ async def test_process():
 
     assert added_abilities[1].name == "Build Command Center"
     assert added_abilities[1].unit_type_id == 20
-
-

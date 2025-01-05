@@ -4,11 +4,13 @@ from sqlalchemy import MetaData
 
 from abc import ABCMeta
 
+
 # Combine DeclarativeMeta and ABCMeta into a single metaclass
 class DeclarativeABCMeta(DeclarativeMeta, ABCMeta):
     pass
 
-@as_declarative(metadata = MetaData(), metaclass=DeclarativeABCMeta)
+
+@as_declarative(metadata=MetaData(), metaclass=DeclarativeABCMeta)
 class WarehouseBase:
     injectable = {}  # Dictionary to map table names to classes
 

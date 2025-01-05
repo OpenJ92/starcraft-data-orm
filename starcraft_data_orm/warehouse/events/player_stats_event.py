@@ -9,6 +9,7 @@ from starcraft_data_orm.warehouse.replay.info import info
 from starcraft_data_orm.inject import Injectable
 from starcraft_data_orm.warehouse.base import WarehouseBase
 
+
 class player_stats_event(Injectable, WarehouseBase):
     __tablename__ = "player_stats_event"
     __table_args__ = {"schema": "events"}
@@ -82,85 +83,87 @@ class player_stats_event(Injectable, WarehouseBase):
 
     @classmethod
     async def process(cls, replay, session):
-       events = replay.events_dictionary['PlayerStatsEvent']
+        events = replay.events_dictionary["PlayerStatsEvent"]
 
-       _events = []
-       for event in events:
-           data = cls.get_data(event)
-           parents = await cls.process_dependancies(event, replay, session)
+        _events = []
+        for event in events:
+            data = cls.get_data(event)
+            parents = await cls.process_dependancies(event, replay, session)
 
-           _events.append(cls(**data, **parents))
+            _events.append(cls(**data, **parents))
 
-       session.add_all(_events)
+        session.add_all(_events)
 
     @classmethod
     async def process_dependancies(cls, event, replay, session):
-       _player, _info = event.player.pid, replay.filehash
-       parents = defaultdict(lambda:None)
+        _player, _info = event.player.pid, replay.filehash
+        parents = defaultdict(lambda: None)
 
-       info_statement = select(info).where(info.filehash == _info)
-       info_result = await session.execute(info_statement)
-       _info = info_result.scalar()
-       parents['info_id'] = _info.primary_id
+        info_statement = select(info).where(info.filehash == _info)
+        info_result = await session.execute(info_statement)
+        _info = info_result.scalar()
+        parents["info_id"] = _info.primary_id
 
-       player_statement = select(player).where(and_(player.pid == _player, player.info_id == _info.primary_id))
-       player_result = await session.execute(player_statement)
-       _player = player_result.scalar()
-       parents['player_id'] = _player.primary_id
+        player_statement = select(player).where(
+            and_(player.pid == _player, player.info_id == _info.primary_id)
+        )
+        player_result = await session.execute(player_statement)
+        _player = player_result.scalar()
+        parents["player_id"] = _player.primary_id
 
-       return parents
+        return parents
 
-    columns = \
-        { "second"
-        , "minerals_current"
-        , "vespene_current"
-        , "minerals_collection_rate"
-        , "vespene_collection_rate"
-        , "workers_active_count"
-        , "minerals_used_in_progress_army"
-        , "minerals_used_in_progress_economy"
-        , "minerals_used_in_progress_technology"
-        , "minerals_used_in_progress"
-        , "vespene_used_in_progress_army"
-        , "vespene_used_in_progress_economy"
-        , "vespene_used_in_progress_technology"
-        , "vespene_used_in_progress"
-        , "resources_used_in_progress"
-        , "minerals_used_current_army"
-        , "minerals_used_current_economy"
-        , "minerals_used_current_technology"
-        , "minerals_used_current"
-        , "vespene_used_current_army"
-        , "vespene_used_current_economy"
-        , "vespene_used_current_technology"
-        , "vespene_used_current"
-        , "resources_used_current"
-        , "minerals_lost_army"
-        , "minerals_lost_economy"
-        , "minerals_lost_technology"
-        , "minerals_lost"
-        , "vespene_lost_army"
-        , "vespene_lost_economy"
-        , "vespene_lost_technology"
-        , "vespene_lost"
-        , "resources_lost"
-        , "minerals_killed_army"
-        , "minerals_killed_economy"
-        , "minerals_killed_technology"
-        , "minerals_killed"
-        , "vespene_killed_army"
-        , "vespene_killed_economy"
-        , "vespene_killed_technology"
-        , "vespene_killed"
-        , "resources_killed"
-        , "food_used"
-        , "food_made"
-        , "minerals_used_active_forces"
-        , "vespene_used_active_forces"
-        , "ff_minerals_lost_army"
-        , "ff_minerals_lost_economy"
-        , "ff_minerals_lost_technology"
-        , "ff_vespene_lost_army"
-        , "ff_vespene_lost_economy"
-        , "ff_vespene_lost_technology"
-        }
+    columns = {
+        "second",
+        "minerals_current",
+        "vespene_current",
+        "minerals_collection_rate",
+        "vespene_collection_rate",
+        "workers_active_count",
+        "minerals_used_in_progress_army",
+        "minerals_used_in_progress_economy",
+        "minerals_used_in_progress_technology",
+        "minerals_used_in_progress",
+        "vespene_used_in_progress_army",
+        "vespene_used_in_progress_economy",
+        "vespene_used_in_progress_technology",
+        "vespene_used_in_progress",
+        "resources_used_in_progress",
+        "minerals_used_current_army",
+        "minerals_used_current_economy",
+        "minerals_used_current_technology",
+        "minerals_used_current",
+        "vespene_used_current_army",
+        "vespene_used_current_economy",
+        "vespene_used_current_technology",
+        "vespene_used_current",
+        "resources_used_current",
+        "minerals_lost_army",
+        "minerals_lost_economy",
+        "minerals_lost_technology",
+        "minerals_lost",
+        "vespene_lost_army",
+        "vespene_lost_economy",
+        "vespene_lost_technology",
+        "vespene_lost",
+        "resources_lost",
+        "minerals_killed_army",
+        "minerals_killed_economy",
+        "minerals_killed_technology",
+        "minerals_killed",
+        "vespene_killed_army",
+        "vespene_killed_economy",
+        "vespene_killed_technology",
+        "vespene_killed",
+        "resources_killed",
+        "food_used",
+        "food_made",
+        "minerals_used_active_forces",
+        "vespene_used_active_forces",
+        "ff_minerals_lost_army",
+        "ff_minerals_lost_economy",
+        "ff_minerals_lost_technology",
+        "ff_vespene_lost_army",
+        "ff_vespene_lost_economy",
+        "ff_vespene_lost_technology",
+    }
