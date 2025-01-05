@@ -25,6 +25,12 @@ jobs:
     services:
       db:
         image: postgres:13
+        ports:
+          - "5432:5432"
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: starcraft_dev
         options: >-
           --health-cmd="pg_isready -U postgres"
           --health-interval=10s
