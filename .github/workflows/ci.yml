@@ -22,6 +22,7 @@ jobs:
 
   test:
     runs-on: ubuntu-latest
+
     services:
       db:
         image: postgres:13
@@ -36,12 +37,24 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Build Docker Services
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Docker and Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      - name: Build and Start Services
         run: docker-compose up --build -d
+
+      - name: Wait for Services
+        run: sleep 15 
+
       - name: Run Tests
-        run: docker exec -it starcraft-app pytest --cov=.
+        run: docker exec -it starcraft-app pytest
 
   coverage:
     needs: [test]
