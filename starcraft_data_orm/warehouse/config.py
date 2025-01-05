@@ -49,7 +49,6 @@ configurations = {
 ENV = os.getenv("APP_ENV", "development")  # Default to 'development' if APP_ENV is not set
 CurrentConfig = configurations[ENV]
 
-from sqlalchemy.engine.url import make_url
 
 # Initialize SQLAlchemy Engine
 # Create an async engine
