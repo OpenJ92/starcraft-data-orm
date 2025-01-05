@@ -1,6 +1,7 @@
 # Starcraft Data Platform
 
-## **Status: Work in Progress 🚧**
+## **Status: Work in Progress [![Coverage Status](https://coveralls.io/repos/github/username/repo/badge.svg?branch=main)](https://coveralls.io/github/username/repo?branch=main) **
+
 
 This repository is under active development. It defines the database architecture for ingesting, storing, and analyzing Starcraft II replay data.
 
