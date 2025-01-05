@@ -6,4 +6,6 @@ from starcraft_data_orm.warehouse.events.unit_born_event import unit_born_event
 from starcraft_data_orm.warehouse.events.unit_died_event import unit_died_event
 from starcraft_data_orm.warehouse.events.unit_done_event import unit_done_event
 from starcraft_data_orm.warehouse.events.unit_init_event import unit_init_event
-from starcraft_data_orm.warehouse.events.upgrade_complete_event import upgrade_complete_event
+from starcraft_data_orm.warehouse.events.upgrade_complete_event import (
+    upgrade_complete_event,
+)
