@@ -23,35 +23,15 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    services:
-      db:
-        image: postgres:13
-        ports:
-          - "5432:5432"
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-          POSTGRES_DB: starcraft_dev
-        options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Install Docker and Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
-
       - name: Build and Start Services
-        run: docker-compose up --build -d
+        run: docker compose up --build -d
 
       - name: Wait for Services
-        run: sleep 15 
+        run: sleep 5
 
       - name: Run Tests
         run: docker exec -it starcraft-app pytest
