@@ -6,6 +6,7 @@ from sqlalchemy.orm import relationship
 from starcraft_data_orm.inject import Injectable
 from starcraft_data_orm.warehouse.base import WarehouseBase
 
+
 class map(Injectable, WarehouseBase):
     __tablename__ = "map"
     __table_args__ = {"schema": "replay"}
@@ -39,15 +40,8 @@ class map(Injectable, WarehouseBase):
 
     @classmethod
     async def process_existence(cls, filehash, session):
-       statement = select(cls).where(cls.filehash == filehash)
-       result = await session.execute(statement)
-       return result.scalar()
+        statement = select(cls).where(cls.filehash == filehash)
+        result = await session.execute(statement)
+        return result.scalar()
 
-    columns = \
-        { "filename"
-        , "filehash"
-        , "name"
-        , "author"
-        , "description"
-        , "website"
-        }
+    columns = {"filename", "filehash", "name", "author", "description", "website"}

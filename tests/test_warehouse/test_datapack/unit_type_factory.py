@@ -4,6 +4,7 @@ from factory.alchemy import SQLAlchemyModelFactory
 from starcraft_data_orm.warehouse.config import SyncSessionLocal
 from starcraft_data_orm.warehouse.datapack.unit_type import unit_type
 
+
 class UnitTypeFactory(Factory):
     class Meta:
         model = unit_type
@@ -18,5 +19,5 @@ class UnitTypeFactory(Factory):
     vespene = Faker("random_int", min=0, max=500)
     supply = Faker("random_int", min=0, max=10)
     is_building = Faker("boolean")
-    is_army   = Faker("boolean")
+    is_army = Faker("boolean")
     is_worker = Faker("boolean")
