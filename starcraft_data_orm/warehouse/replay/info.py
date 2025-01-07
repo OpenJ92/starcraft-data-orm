@@ -102,17 +102,19 @@ class info(Injectable, WarehouseBase):
 
     @classmethod
     async def process_dependancies(cls, obj, replay, session):
-        _map, parents = obj.map_hash, defaultdict(lambda: None)
+       _map, parents = obj.map, defaultdict(lambda: None)
 
-        statement = select(map).where(map.filehash == _map)
-        result = await session.execute(statement)
-        _map = result.scalar()
+       if not _map:
+           return { "map_id" : None }
 
-        if not _map:
-            return {"map_id": None}
+       statement = select(map).where(map.filehash == _map.filehash)
+       result    = await session.execute(statement)
+       _map      = result.scalar()
+       if not _map:
+           return {"map_id": None}
 
-        parents["map_id"] = _map.primary_id
-        return parents
+       parents["map_id"] = _map.primary_id
+       return parents
 
     columns = {
         "filename",
