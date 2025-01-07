@@ -110,12 +110,11 @@ class info(Injectable, WarehouseBase):
        statement = select(map).where(map.filehash == _map.filehash)
        result    = await session.execute(statement)
        _map      = result.scalar()
+       if not _map:
+           return {"map_id": None}
 
-        if not _map:
-            return {"map_id": None}
-
-        parents["map_id"] = _map.primary_id
-        return parents
+       parents["map_id"] = _map.primary_id
+       return parents
 
     columns = {
         "filename",
