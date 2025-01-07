@@ -13,7 +13,7 @@ async def test_process_existence():
 
     mock_session = AsyncMock()
     mock_session.add_all = MagicMock()
-    # Mocking session.execute().first() to return a truthy value
+
     mock_execute_result = MagicMock()
     mock_execute_result.first.return_value = UnitTypeFactory()
     mock_session.execute.return_value = mock_execute_result
@@ -23,7 +23,7 @@ async def test_process_existence():
 
     # Assert
     assert result is not None
-    mock_session.execute.assert_called_once()  # Nothing should be added
+    mock_session.add_all.assert_not_called()  # Nothing should be added
 
 
 @pytest.mark.asyncio
