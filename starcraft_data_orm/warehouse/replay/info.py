@@ -100,6 +100,7 @@ class info(Injectable, WarehouseBase):
            return { "map_id" : None }
 
        parents["map_id"] = _map.primary_id
+
        return parents
 
     columns = \
