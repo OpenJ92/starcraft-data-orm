@@ -8,8 +8,7 @@ class UnitTypeFactory(Factory):
     class Meta:
         model = unit_type
 
-    release_string = "1.0.0"
-    primary_id = Sequence(lambda n: n)
+    release_string = Faker("numerify", text="1.0.%##")  # Example: 1.0.42
     id = Faker("random_int", min=0, max=500)
     str_id = Faker("word")
     name = Faker("name")
