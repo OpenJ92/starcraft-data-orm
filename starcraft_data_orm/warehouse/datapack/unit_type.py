@@ -1,5 +1,12 @@
-from sqlalchemy import Column, Integer, Text, Boolean, UniqueConstraint, PrimaryKeyConstraint
-from sqlalchemy.exc import  SQLAlchemyError, IntegrityError, OperationalError
+from sqlalchemy import (
+    Column,
+    Integer,
+    Text,
+    Boolean,
+    UniqueConstraint,
+    PrimaryKeyConstraint,
+)
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError, OperationalError
 from sqlalchemy.future import select
 from sqlalchemy.orm import relationship
 
@@ -9,8 +16,12 @@ from starcraft_data_orm.warehouse.base import WarehouseBase
 
 class unit_type(WarehouseBase, Injectable):
     __tablename__ = "unit_type"
-    __table_args__ = ( UniqueConstraint("id", "release_string", name="unit_type_id_release_string_unique")
-                     , { "schema": 'datapack' } )
+    __table_args__ = (
+        UniqueConstraint(
+            "id", "release_string", name="unit_type_id_release_string_unique"
+        ),
+        {"schema": "datapack"},
+    )
 
     primary_id = Column(Integer, primary_key=True)
     release_string = Column(Text)
@@ -58,18 +69,16 @@ class unit_type(WarehouseBase, Injectable):
             units[unit.id] = unit
         return units
 
-    columns = \
-        { "id"
-        , "str_id"
-        , "name"
-        , "title"
-        , "race"
-        , "minerals"
-        , "vespene"
-        , "supply"
-        , "is_building"
-        , "is_army"
-        , "is_worker"
-        }
-
-
+    columns = {
+        "id",
+        "str_id",
+        "name",
+        "title",
+        "race",
+        "minerals",
+        "vespene",
+        "supply",
+        "is_building",
+        "is_army",
+        "is_worker",
+    }

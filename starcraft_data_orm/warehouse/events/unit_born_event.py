@@ -34,38 +34,34 @@ class unit_born_event(Injectable, WarehouseBase):
 
     @classmethod
     async def process(cls, replay, session):
-       events = replay.events_dictionary['UnitBornEvent']
+        events = replay.events_dictionary["UnitBornEvent"]
 
-       _events = []
-       for event in events:
-           data = cls.get_data(event)
-           parents = await cls.process_dependancies(event, replay, session)
+        _events = []
+        for event in events:
+            data = cls.get_data(event)
+            parents = await cls.process_dependancies(event, replay, session)
 
-           _events.append(cls(**data, **parents))
+            _events.append(cls(**data, **parents))
 
-       session.add_all(_events)
+        session.add_all(_events)
 
     @classmethod
     async def process_dependancies(cls, event, replay, session):
-       _info, _unit = replay.filehash, event.unit_id
-       parents = defaultdict(lambda:None)
+        _info, _unit = replay.filehash, event.unit_id
+        parents = defaultdict(lambda: None)
 
-       info_statement = select(info).where(info.filehash == _info)
-       info_result = await session.execute(info_statement)
-       _info = info_result.scalar()
-       parents['info_id'] = _info.primary_id
+        info_statement = select(info).where(info.filehash == _info)
+        info_result = await session.execute(info_statement)
+        _info = info_result.scalar()
+        parents["info_id"] = _info.primary_id
 
-       unit_statement = select(object).where(
-               and_(object.info_id == _info.primary_id, object.id == _unit))
-       unit_result = await session.execute(unit_statement)
-       _unit = unit_result.scalar()
-       parents['unit_id'] = _unit.primary_id
+        unit_statement = select(object).where(
+            and_(object.info_id == _info.primary_id, object.id == _unit)
+        )
+        unit_result = await session.execute(unit_statement)
+        _unit = unit_result.scalar()
+        parents["unit_id"] = _unit.primary_id
 
-       return parents
+        return parents
 
-    columns = \
-        { "frame"
-        , "second"
-        , "x"
-        , "y"
-        }
+    columns = {"frame", "second", "x", "y"}

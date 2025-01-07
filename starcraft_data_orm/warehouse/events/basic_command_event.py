@@ -39,50 +39,47 @@ class basic_command_event(Injectable, WarehouseBase):
 
     @classmethod
     async def process(cls, replay, session):
-       events = replay.events_dictionary['BasicCommandEvent']
+        events = replay.events_dictionary["BasicCommandEvent"]
 
-       _events = []
-       for event in events:
-           data = cls.get_data(event)
-           parents =  await cls.process_dependancies(event, replay, session)
+        _events = []
+        for event in events:
+            data = cls.get_data(event)
+            parents = await cls.process_dependancies(event, replay, session)
 
-           _events.append(cls(**data, **parents))
+            _events.append(cls(**data, **parents))
 
-       session.add_all(_events)
+        session.add_all(_events)
 
     @classmethod
     async def process_dependancies(cls, event, replay, session):
-       _player, _info, _ability = event.player.pid, replay.filehash, event.ability
-       parents = defaultdict(lambda:None)
+        _player, _info, _ability = event.player.pid, replay.filehash, event.ability
+        parents = defaultdict(lambda: None)
 
+        info_statement = select(info).where(info.filehash == _info)
+        info_result = await session.execute(info_statement)
+        _info = info_result.scalar()
+        parents["info_id"] = _info.primary_id
 
-       info_statement = select(info).where(info.filehash == _info)
-       info_result =  await session.execute(info_statement)
-       _info = info_result.scalar()
-       parents['info_id'] = _info.primary_id
+        player_statement = select(player).where(
+            and_(player.pid == _player, player.info_id == _info.primary_id)
+        )
+        player_result = await session.execute(player_statement)
+        _player = player_result.scalar()
+        parents["player_id"] = _player.primary_id
 
-       player_statement = select(player).where(and_(player.pid == _player, player.info_id == _info.primary_id))
-       player_result =  await session.execute(player_statement)
-       _player = player_result.scalar()
-       parents['player_id'] = _player.primary_id
+        if not event.ability:
+            return parents
 
-       if not event.ability:
-           return parents
+        ability_statement = select(ability).where(
+            and_(
+                ability.id == _ability.id,
+                ability.release_string == replay.release_string,
+            )
+        )
+        ability_result = await session.execute(ability_statement)
+        _ability = ability_result.scalar()
+        parents["ability_id"] = _ability.primary_id
 
-       ability_statement = select(ability).where(
-               and_(ability.id == _ability.id, ability.release_string == replay.release_string))
-       ability_result = await session.execute(ability_statement)
-       _ability = ability_result.scalar()
-       parents['ability_id'] = _ability.primary_id
+        return parents
 
-       return parents
-
-
-
-    columns = \
-        { "frame"
-        , "second"
-        , "is_local"
-        , "has_ability"
-        , "ability_name"
-        }
+    columns = {"frame", "second", "is_local", "has_ability", "ability_name"}

@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 from starcraft_data_orm.warehouse.datapack.unit_type import unit_type
 from tests.test_warehouse.test_datapack.unit_type_factory import UnitTypeFactory
 
+
 @pytest.mark.asyncio
 async def test_process_existence():
     # Arrange
@@ -12,7 +13,7 @@ async def test_process_existence():
 
     mock_session = AsyncMock()
     mock_session.add_all = MagicMock()
-    # Mocking session.execute().first() to return a truthy value
+
     mock_execute_result = MagicMock()
     mock_execute_result.first.return_value = UnitTypeFactory()
     mock_session.execute.return_value = mock_execute_result
@@ -22,7 +23,8 @@ async def test_process_existence():
 
     # Assert
     assert result is not None
-    mock_session.execute.assert_called_once()  # Nothing should be added
+    mock_session.add_all.assert_not_called()  # Nothing should be added
+
 
 @pytest.mark.asyncio
 async def test_process():
