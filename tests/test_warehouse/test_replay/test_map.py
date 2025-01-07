@@ -32,7 +32,6 @@ async def test_process_map_does_not_exist():
     mock_session = AsyncMock()
     mock_session.add = MagicMock()
 
-    # Mocking session.execute().first() to return None (no rows found)
     mock_execute_result = MagicMock()
     mock_execute_result.scalar.return_value = None
     mock_session.execute.return_value = mock_execute_result

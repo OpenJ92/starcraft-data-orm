@@ -8,7 +8,6 @@ class AbilityFactory(Factory):
     class Meta:
         model = ability
 
-    primary_id = Sequence(lambda n: n)
     release_string = Faker("numerify", text="1.0.%##")  # Example: 1.0.42
     id = Faker("random_int", min=0, max=300)
     version = "1.0.0"
