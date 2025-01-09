@@ -62,7 +62,6 @@ class player(Injectable, WarehouseBase):
     )
 
     @classmethod
-    @property
     def __tableschema__(self):
         return "replay"
 

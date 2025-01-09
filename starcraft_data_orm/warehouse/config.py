@@ -64,7 +64,7 @@ CurrentConfig = configurations[ENV]
 # Create an async engine
 _engine = create_engine(CurrentConfig.get_connection_string())
 engine = create_async_engine(
-    CurrentConfig.get_connection_string(async_mode=True), echo=True
+    CurrentConfig.get_connection_string(async_mode=True)
 )
 
 # Create a Session Factory

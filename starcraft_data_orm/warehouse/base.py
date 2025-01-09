@@ -23,5 +23,5 @@ class WarehouseBase:
         """Automatically register subclasses."""
         super().__init_subclass__(**kwargs)
         if hasattr(cls, "process"):
-            name = f"{cls.__tableschema__}.{cls.__tablename__}"
+            name = f"{cls.__tableschema__()}.{cls.__tablename__}"
             __class__.injectable[name] = cls

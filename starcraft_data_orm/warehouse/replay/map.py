@@ -23,7 +23,6 @@ class map(Injectable, WarehouseBase):
     replays = relationship("info", back_populates="map")
 
     @classmethod
-    @property
     def __tableschema__(self):
         return "replay"
 

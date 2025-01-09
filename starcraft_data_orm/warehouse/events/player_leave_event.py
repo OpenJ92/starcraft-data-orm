@@ -28,7 +28,6 @@ class player_leave_event(Injectable, WarehouseBase):
     info = relationship("info", back_populates="player_leave_events")
 
     @classmethod
-    @property
     def __tableschema__(self):
         return "events"
 
