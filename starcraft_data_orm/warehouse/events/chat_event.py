@@ -31,7 +31,6 @@ class chat_event(Injectable, WarehouseBase):
     info = relationship("info", back_populates="chat_events")
 
     @classmethod
-    @property
     def __tableschema__(self):
         return "events"
 

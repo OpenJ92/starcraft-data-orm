@@ -28,7 +28,6 @@ class unit_born_event(Injectable, WarehouseBase):
     unit = relationship("object", back_populates="unit_born_events")
 
     @classmethod
-    @property
     def __tableschema__(self):
         return "events"
 

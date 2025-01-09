@@ -21,7 +21,6 @@ class user(Injectable, WarehouseBase):
     players = relationship("player", back_populates="user")
 
     @classmethod
-    @property
     def __tableschema__(self):
         return "replay"
 

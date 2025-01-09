@@ -77,7 +77,6 @@ class player_stats_event(Injectable, WarehouseBase):
     info = relationship("info", back_populates="player_stats_events")
 
     @classmethod
-    @property
     def __tableschema__(self):
         return "events"
 

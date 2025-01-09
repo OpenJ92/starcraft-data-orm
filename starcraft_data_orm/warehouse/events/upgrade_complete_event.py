@@ -28,7 +28,6 @@ class upgrade_complete_event(Injectable, WarehouseBase):
     info = relationship("info", back_populates="upgrade_complete_events")
 
     @classmethod
-    @property
     def __tableschema__(self):
         return "events"
 
