@@ -33,7 +33,6 @@ class basic_command_event(Injectable, WarehouseBase):
     ability = relationship("ability", back_populates="basic_command_events")
 
     @classmethod
-    @property
     def __tableschema__(self):
         return "events"
 

@@ -18,12 +18,11 @@ from starcraft_data_orm.inject import Injectable
 
 class ability(Injectable, WarehouseBase):
     __tablename__ = "ability"
-    __tableschema__ = "datapack"
     __table_args__ = (
         UniqueConstraint(
             "id", "release_string", name="ability_id_release_string_unique"
         ),
-        {"schema": __tableschema__},
+        {"schema": "datapack"},
     )
 
     primary_id = Column(Integer, primary_key=True)
@@ -42,7 +41,6 @@ class ability(Injectable, WarehouseBase):
     basic_command_events = relationship("basic_command_event", back_populates="ability")
 
     @classmethod
-    @property
     def __tableschema__(self):
         return "datapack"
 

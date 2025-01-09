@@ -41,7 +41,6 @@ class unit_type(WarehouseBase, Injectable):
     objects = relationship("object", back_populates="unit_type")
 
     @classmethod
-    @property
     def __tableschema__(self):
         return "datapack"
 

@@ -80,7 +80,6 @@ class info(Injectable, WarehouseBase):
     unit_died_events = relationship("unit_died_event", back_populates="info")
 
     @classmethod
-    @property
     def __tableschema__(self):
         return "replay"
 

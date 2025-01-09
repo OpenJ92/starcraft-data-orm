@@ -40,7 +40,6 @@ class unit_died_event(Injectable, WarehouseBase):
     info = relationship("info", back_populates="unit_died_events")
 
     @classmethod
-    @property
     def __tableschema__(self):
         return "events"
 
