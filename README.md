@@ -1,86 +1,46 @@
-# Starcraft Data Platform
-
 ## Status: Work in Progress [![Coverage Status](https://coveralls.io/repos/github/OpenJ92/starcraft-data-orm/badge.svg?branch=main)](https://coveralls.io/github/OpenJ92/starcraft-data-orm?branch=main)
 
-This repository is under active development. It defines the database architecture for ingesting, storing, and analyzing Starcraft II replay data.
+## Starcraft Data ORM
+**Starcraft Data ORM** is a foundational library of SQLAlchemy-based ORM models for Starcraft replay data. It provides database sessions for each schema, enabling seamless integration with the broader Starcraft Data Platform and its components.
 
----
+### Features
+- **Replay Data Models:** Define and manage key replay-related entities, including players, units, events, and game metadata.
+- **Schema-Specific Sessions:** Includes [`SessionLocal`](https://github.com/OpenJ92/starcraft-data-orm/blob/main/starcraft_data_orm/warehouse/config.py) in [`starcraft/warehouse/config.py`](https://github.com/OpenJ92/starcraft-data-orm/blob/main/starcraft_data_orm/warehouse/config.py) for efficient database interactions.
+- **SQLAlchemy Base Objects:** Supplies prebuilt Base objects for use with [`injection-manager`](https://github.com/OpenJ92/injection-manager) objects, enabling seamless data injection workflows.
+- **Integration Ready:** Works seamlessly with [`starcraft-injection-manager`](https://github.com/OpenJ92/starcraft-injection-manager) and [`starcraft-gather-manager`](https://github.com/OpenJ92/starcraft-gather-manager) for pipeline workflows.
+- **Scalable Design:** Supports extensions to accommodate evolving analytics and machine learning requirements.
+- **Async Compatibility:** Built to handle modern async frameworks and workflows.
 
-## **Overview**
+### Installation
+```bash
+pip install starcraft-data-orm
+```
 
-The **Starcraft Data Platform** is designed to:
-- Store raw replay data, player information, and event logs in a relational database.
-- Provide analytics views and materialized tables for advanced insights.
-- Enable machine learning workflows by supporting feature engineering and model outputs.
+### Usage
+Setting Up the ORM
+``` python
+Copy code
+from starcraft.warehouse.config import SessionLocal, SyncSessionLocal
+from starcraft_data_orm.warehouse.info import info
 
----
+# Use the appropriate session for async or sync workflows
+async_session = SessionLocal()
+sync_session = SyncSessionLocal()
 
-## **Planned Features**
+# Example with SyncSessionLocal
+with sync_session() as session:
+    result = session.query(info).first()
+    print(f"Info: {result}")
+```
 
-1. **Core Functionality**:
-   - Relational database schema for storing raw replay data.
-   - Analytics views for player statistics and performance trends.
-   - ML schema for storing model outputs and feature sets.
+### Session Management
+The SessionLocal and SyncSessionLocal sessions are preconfigured to handle database interactions specific to the Starcraft warehouse schema.
 
-2. **Technology Stack**:
-   - PostgreSQL for database storage.
-   - SQLAlchemy for ORM models.
-   - Docker for containerized deployment.
+### Development Status
+This project is under active development. While stable for core functionality, additional models and features are being added.
 
-3. **Future Enhancements**:
-   - Performance optimization for materialized views.
-   - Expanded analytics for build orders and map-specific trends.
+### Contributing
+Contributions are welcome! Please open an issue or submit a pull request if you would like to add new features or report bugs.
 
----
-
-## **Current Focus**
-
-The current phase of development is focused on:
-- Designing the `raw` schema for replay ingestion.
-- Creating analytics views for player statistics.
-
----
-
-## **Getting Started**
-
-⚠️ **This project is not yet ready for deployment or public use.** Setup instructions will be added as development progresses.
-
----
-
-## **Planned Structure**
-
-This repository will be organized into the following structure:
-
-- **`db/`**: Contains all database-related files.
-  - **`schema.sql`**: A consolidated SQL file for creating all database schemas, including raw, analytics, and ML schemas.
-  - **`models/`**: A directory housing SQLAlchemy ORM models.
-    - **`replay.py`**: ORM models for replay metadata tables (e.g., Info, Player, Team).
-    - **`events.py`**: ORM models for event data (e.g., UnitBornEvent, SelectionEvent).
-    - **`datapack.py`**: ORM models for unit and ability metadata (e.g., UnitType, Ability).
-  - **`analytics/`**: SQL files for analytics views and materialized tables.
-    - **`player_stats.sql`**: A view aggregating player performance metrics.
-    - **`map_performance.sql`**: A view tracking win rates by map and race.
-    - **`player_stats_summary.sql`**: A materialized view summarizing player statistics across replays.
-
-- **`tests/`**: Contains unit tests for validating schema and models.
-  - **`test_schema.py`**: Tests to ensure the database schema is correctly defined.
-  - **`test_models.py`**: Tests for ORM models to verify accurate data interaction.
-  - **`test_analytics.py`**: Tests for analytics queries and performance.
-
-- **`Dockerfile`**: Configuration for containerizing the project, ensuring consistent environments for development and deployment.
-
-- **`README.md`**: This documentation file, providing an overview of the project and its structure.
-
----
-
-## **How to Contribute**
-
-Contributions are welcome once the repository reaches a stable state. If you'd like to collaborate, please reach out or open an issue to discuss ideas.
-
----
-
-## **License**
-
-[MIT License]
-
----
+### License
+This project is licensed under the MIT License. See the LICENSE file for details.
