@@ -63,9 +63,7 @@ CurrentConfig = configurations[ENV]
 # Initialize SQLAlchemy Engine
 # Create an async engine
 _engine = create_engine(CurrentConfig.get_connection_string())
-engine = create_async_engine(
-    CurrentConfig.get_connection_string(async_mode=True)
-)
+engine = create_async_engine(CurrentConfig.get_connection_string(async_mode=True))
 
 # Create a Session Factory
 SyncSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=_engine)

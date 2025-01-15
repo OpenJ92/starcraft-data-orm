@@ -21,5 +21,4 @@ class Injectable(ABC):
         for variable, value in vars(obj).items():
             if variable in cls.columns:
                 parameters[variable] = value
-        print(f"Extracted parameters: {parameters}")
         return parameters
