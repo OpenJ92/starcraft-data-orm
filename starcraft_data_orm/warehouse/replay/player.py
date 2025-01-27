@@ -27,6 +27,7 @@ class player(Injectable, WarehouseBase):
         UniqueConstraint("pid", "info_id", name="pid_info_id_unique"),
         {"schema": "replay"},
     )
+    _cache = {}
 
     primary_id = Column(Integer, primary_key=True)
 
@@ -86,29 +87,21 @@ class player(Injectable, WarehouseBase):
         _uid, _filehash = obj.detail_data.get("bnet").get("uid"), replay.filehash
         parents = defaultdict(lambda: None)
 
-        user_statement = select(user).where(user.uid == _uid)
-        user_result = await session.execute(user_statement)
-        _user = user_result.scalar()
-
-        info_statement = select(info).where(info.filehash == _filehash)
-        info_result = await session.execute(info_statement)
-        _info = info_result.scalar()
-
-        parents["user_id"] = _user.primary_id
-        parents["info_id"] = _info.primary_id
+        parents["info_id"] = await info.get_primary_id(session, _filehash)
+        parents["user_id"] = await user.get_primary_id(session, _uid)
 
         return parents
 
     @classmethod
-    def get_primary_id(cls, session):
+    async def get_primary_id(cls, session, pid, info_id):
+        if (pid, info_id) in cls._cache:
+            return cls._cache[(pid, info_id)]
 
-        @lru_cache(maxsize=10000)
-        async def cached_get_primary_id(pid, info_id):
-            statement = select(cls.primary_id).where(and_(cls.info_id==info_id, cls.pid == pid))
-            result = await session.execute(statement)
-            return result.scalar()
+        statement = select(cls.primary_id).where(and_(cls.info_id==info_id, cls.pid == pid))
+        result = await session.execute(statement)
 
-        return cached_get_primary_id
+        cls._cache[(pid, info_id)] = result.scalar()
+        return cls._cache[(pid, info_id)]
 
     columns = {
         "pid",
