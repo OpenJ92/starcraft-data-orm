@@ -49,17 +49,8 @@ class player_leave_event(Injectable, WarehouseBase):
         _player, _info = event.player.pid, replay.filehash
         parents = defaultdict(lambda: None)
 
-        info_statement = select(info).where(info.filehash == _info)
-        info_result = await session.execute(info_statement)
-        _info = info_result.scalar()
-        parents["info_id"] = _info.primary_id
-
-        player_statement = select(player).where(
-            and_(player.pid == _player, player.info_id == _info.primary_id)
-        )
-        player_result = await session.execute(player_statement)
-        _player = player_result.scalar()
-        parents["player_id"] = _player.primary_id
+        parents["info_id"] = await info.get_primary_id(session, _info)
+        parents["player_id"] = await player.get_primary_id(session, _player, _info)
 
         return parents
 
