@@ -6,12 +6,14 @@ from sqlalchemy import (
     BigInteger,
     ForeignKey,
     UniqueConstraint,
+    and_,
 )
 from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import relationship
 
 from collections import defaultdict
+from functools import lru_cache
 
 from starcraft_data_orm.warehouse.replay.info import info
 from starcraft_data_orm.warehouse.replay.user import user
@@ -70,7 +72,10 @@ class player(Injectable, WarehouseBase):
         players = []
         for player in replay.players:
             data = cls.get_data(player)
-            data["scaled_rating"] = player.init_data.get("scaled_rating")
+
+            if player.is_human:
+                data["scaled_rating"] = player.init_data.get("scaled_rating")
+
             parents = await cls.process_dependancies(player, replay, session)
             players.append(cls(**data, **parents))
 
@@ -93,6 +98,17 @@ class player(Injectable, WarehouseBase):
         parents["info_id"] = _info.primary_id
 
         return parents
+
+    @classmethod
+    def get_primary_id(cls, session):
+
+        @lru_cache(maxsize=10000)
+        async def cached_get_primary_id(pid, info_id):
+            statement = select(cls.primary_id).where(and_(cls.info_id==info_id, cls.pid == pid))
+            result = await session.execute(statement)
+            return result.scalar()
+
+        return cached_get_primary_id
 
     columns = {
         "pid",
