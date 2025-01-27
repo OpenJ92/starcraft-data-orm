@@ -50,7 +50,7 @@ class player_leave_event(Injectable, WarehouseBase):
         parents = defaultdict(lambda: None)
 
         parents["info_id"] = await info.get_primary_id(session, _info)
-        parents["player_id"] = await player.get_primary_id(session, _player, _info)
+        parents["player_id"] = await player.get_primary_id(session, _player, parents["info_id"])
 
         return parents
 
