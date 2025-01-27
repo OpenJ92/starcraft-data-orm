@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, Text, ForeignKey, and_
 from sqlalchemy.future import select
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import insert
 
 from collections import defaultdict
 
@@ -52,9 +53,10 @@ class unit_died_event(Injectable, WarehouseBase):
             data = cls.get_data(event)
             parents = await cls.process_dependancies(event, replay, session)
 
-            _events.append(cls(**data, **parents))
+            _events.append({**data, **parents})
 
-        session.add_all(_events)
+        statement = insert(unit_died_event).values(_events)
+        await session.execute(statement)
 
     @classmethod
     async def process_dependancies(cls, event, replay, session):
@@ -63,7 +65,7 @@ class unit_died_event(Injectable, WarehouseBase):
             event.unit_id,
             event.killing_unit_id,
         )
-        parents = defaultdict(lambda: None)
+        parents = {"info_id":None, "unit_id":None, "killing_unit_id":None}
 
         info_statement = select(info).where(info.filehash == _info)
         info_result = await session.execute(info_statement)

@@ -14,6 +14,7 @@ from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import relationship
 
 from collections import defaultdict
+from functools import lru_cache
 
 from starcraft_data_orm.warehouse.replay.map import map
 from starcraft_data_orm.warehouse.base import WarehouseBase
@@ -114,6 +115,17 @@ class info(Injectable, WarehouseBase):
 
        parents["map_id"] = _map.primary_id
        return parents
+
+    @classmethod
+    def get_primary_id(cls, session):
+
+        @lru_cache(maxsize=10000)
+        async def cached_get_primary_id(filehash):
+            statement = select(cls.primary_id).where(cls.filehash==filehash)
+            result = await session.execute(statement)
+            return result.scalar()
+
+        return cached_get_primary_id
 
     columns = {
         "filename",
