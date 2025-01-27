@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, Float, Text, Boolean, ForeignKey, and_
 from sqlalchemy.future import select
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import insert
 
 from collections import defaultdict
 
@@ -89,26 +90,36 @@ class player_stats_event(Injectable, WarehouseBase):
             data = cls.get_data(event)
             parents = await cls.process_dependancies(event, replay, session)
 
-            _events.append(cls(**data, **parents))
+            _events.append({**data, **parents})
 
-        session.add_all(_events)
+        NUM_COLUMNS = len(player_stats_event.columns)
+        MAX_QUERY_PARAMS = 30000
+        BATCH_SIZE = MAX_QUERY_PARAMS // NUM_COLUMNS
+        for batch_start in range(0, len(_events), BATCH_SIZE):
+            upper_bound = min(batch_start+BATCH_SIZE, len(_events))
+            batch = _events[batch_start:upper_bound]
+            statement = insert(cls).values(batch)
+            await session.execute(statement)
+            await session.flush()
 
     @classmethod
     async def process_dependancies(cls, event, replay, session):
         _player, _info = event.player.pid, replay.filehash
-        parents = defaultdict(lambda: None)
+        parents = {"info_id":None, "player_id":None}
 
-        info_statement = select(info).where(info.filehash == _info)
-        info_result = await session.execute(info_statement)
-        _info = info_result.scalar()
-        parents["info_id"] = _info.primary_id
+        parents["info_id"] = await info.get_primary_id(session)(_info)
+        ## info_statement = select(info).where(info.filehash == _info)
+        ## info_result = await session.execute(info_statement)
+        ## _info = info_result.scalar()
+        ## parents["info_id"] = _info.primary_id
 
-        player_statement = select(player).where(
-            and_(player.pid == _player, player.info_id == _info.primary_id)
-        )
-        player_result = await session.execute(player_statement)
-        _player = player_result.scalar()
-        parents["player_id"] = _player.primary_id
+        parents["player_id"] = await player.get_primary_id(session)(_player, parents['info_id'])
+        ## player_statement = select(player).where(
+        ##     and_(player.pid == _player, player.info_id == _info.primary_id)
+        ## )
+        ## player_result = await session.execute(player_statement)
+        ## _player = player_result.scalar()
+        ## parents["player_id"] = _player.primary_id
 
         return parents
 
