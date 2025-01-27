@@ -67,29 +67,14 @@ class unit_died_event(Injectable, WarehouseBase):
         )
         parents = {"info_id":None, "unit_id":None, "killing_unit_id":None}
 
-        info_statement = select(info).where(info.filehash == _info)
-        info_result = await session.execute(info_statement)
-        _info = info_result.scalar()
-        parents["info_id"] = _info.primary_id
+        parents["info_id"] = await info.get_primary_id(session, _info)
+        parents["unit_id"] = await object.get_primary_id(session, _unit, parents["info_id"])
 
-        unit_statement = select(object).where(
-            and_(object.info_id == _info.primary_id, object.id == _unit)
-        )
-        unit_result = await session.execute(unit_statement)
-        _unit = unit_result.scalar()
-        parents["unit_id"] = _unit.primary_id
 
-        # Not all units have a killer.
         if not _killing_unit:
             return parents
 
-        killing_unit_statement = select(object).where(
-            and_(object.info_id == _info.primary_id, object.id == _killing_unit)
-        )
-        killing_unit_result = await session.execute(killing_unit_statement)
-        _killing_unit = killing_unit_result.scalar()
-
-        parents["killing_unit_id"] = _killing_unit.primary_id
+        parents["killing_unit_id"] = await object.get_primary_id(session, _killing_unit, parents["info_id"])
 
         return parents
 
