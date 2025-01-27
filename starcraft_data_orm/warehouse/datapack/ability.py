@@ -24,6 +24,7 @@ class ability(Injectable, WarehouseBase):
         ),
         {"schema": "datapack"},
     )
+    _cache = {}
 
     primary_id = Column(Integer, primary_key=True)
 
@@ -68,21 +69,23 @@ class ability(Injectable, WarehouseBase):
     @classmethod
     async def process_dependancies(cls, ability, replay, session):
         unit = ability.build_unit
-        if not unit:
-            return {"unit_type_id": None}
+        parents = {"unit_type_id" : None}
 
-        statement = select(unit_type).where(
-            and_(
-                unit_type.release_string == replay.release_string,
-                unit_type.id == unit.id,
-            )
-        )
+        if not unit:
+            return parents
+
+        parents["unit_type_id"] = await unit_type.get_primary_id(session, unit.id, replay.release_string)
+        return parents
+
+    @classmethod
+    async def get_primary_id(cls, session, id, release_string):
+        if (id, release_string) in cls._cache:
+            return cls._cache[(id, release_string)]
+
+        statement = select(cls.primary_id).where(and_(cls.id==id,cls.release_string==release_string))
         result = await session.execute(statement)
-        unit = result.scalar()
 
-        if not unit:
-            return {"unit_type_id": None}
-
-        return {"unit_type_id": unit.primary_id}
+        cls._cache[(id, release_string)] = result.scalar()
+        return cls._cache[(id, release_string)]
 
     columns = {"id", "version", "name", "title", "is_build", "build_time"}

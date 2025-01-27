@@ -60,15 +60,7 @@ class basic_command_event(Injectable, WarehouseBase):
         if not event.ability:
             return parents
 
-        ability_statement = select(ability).where(
-            and_(
-                ability.id == _ability.id,
-                ability.release_string == replay.release_string,
-            )
-        )
-        ability_result = await session.execute(ability_statement)
-        _ability = ability_result.scalar()
-        parents["ability_id"] = _ability.primary_id
+        parents["ability_id"] = await ability.get_primary_id(session, _ability.id, replay.release_string)
 
         return parents
 
