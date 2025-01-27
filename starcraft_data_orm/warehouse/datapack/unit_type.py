@@ -5,10 +5,13 @@ from sqlalchemy import (
     Boolean,
     UniqueConstraint,
     PrimaryKeyConstraint,
+    and_,
 )
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError, OperationalError
 from sqlalchemy.future import select
 from sqlalchemy.orm import relationship
+
+from functools import lru_cache
 
 from starcraft_data_orm.inject import Injectable
 from starcraft_data_orm.warehouse.base import WarehouseBase
@@ -22,6 +25,7 @@ class unit_type(WarehouseBase, Injectable):
         ),
         {"schema": "datapack"},
     )
+    _cache = {}
 
     primary_id = Column(Integer, primary_key=True)
     release_string = Column(Text)
@@ -67,6 +71,17 @@ class unit_type(WarehouseBase, Injectable):
         for _, unit in replay.datapack.units.items():
             units[unit.id] = unit
         return units
+
+    @classmethod
+    async def get_primary_id(cls, session, id, release_string):
+        if (id, release_string) in cls._cache:
+            return cls._cache[(id, release_string)]
+
+        statement = select(cls.primary_id).where(and_(cls.release_string==release_string, cls.id == id))
+        result = await session.execute(statement)
+
+        cls._cache[(id, release_string)] = result.scalar()
+        return cls._cache[(id, release_string)]
 
     columns = {
         "id",

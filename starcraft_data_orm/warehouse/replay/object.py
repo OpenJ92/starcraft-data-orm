@@ -1,9 +1,10 @@
-from sqlalchemy import Column, Integer, Text, LargeBinary, ForeignKey, and_
+from sqlalchemy import Column, Integer, Text, LargeBinary, ForeignKey, and_ 
 from sqlalchemy.future import select
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import insert
 
 from collections import defaultdict
+from functools import lru_cache
 
 from starcraft_data_orm.inject import Injectable
 from starcraft_data_orm.warehouse.base import WarehouseBase
@@ -17,6 +18,7 @@ from starcraft_data_orm.warehouse.datapack.unit_type import unit_type
 class object(Injectable, WarehouseBase):
     __tablename__ = "object"
     __table_args__ = {"schema": "replay"}
+    _cache = {}
 
     primary_id = Column(Integer, primary_key=True)
 
@@ -67,54 +69,35 @@ class object(Injectable, WarehouseBase):
         for _, obj in replay.objects.items():
             data = cls.get_data(obj)
             parents = await cls.process_dependancies(obj, replay, session)
-            if not parents:
-                continue
+            _objects.append(cls(**data, **parents))
 
-            _objects.append({**data, **parents})
-
-        NUM_COLUMNS = len(object.columns)
-        MAX_QUERY_PARAMS = 30000
-        BATCH_SIZE = MAX_QUERY_PARAMS // NUM_COLUMNS
-        for batch_start in range(0, len(_objects), BATCH_SIZE):
-            upper_bound = min(batch_start+BATCH_SIZE, len(_objects))
-            batch = _objects[batch_start:upper_bound]
-            statement = insert(object).values(_objects)
-            await session.execute(statement)
-            await session.flush()
+        session.add_all(_objects)
 
     @classmethod
     async def process_dependancies(cls, obj, replay, session):
         _unit, _info, _player = obj._type_class, replay.filehash, obj.owner
         parents = {"info_id":None, "unit_type_id":None, "owner_id":None}
 
-        info_statement = select(info).where(info.filehash == _info)
-        info_result = await session.execute(info_statement)
-        _info = info_result.scalar()
-        parents["info_id"] = _info.primary_id
+        parents["info_id"] = await info.get_primary_id(session, _info)
 
-        # Not all objects have a unit. They may have references in events, though.
         if _unit:
-            unit_statement = select(unit_type).where(
-                and_(
-                    unit_type.release_string == replay.release_string,
-                    unit_type.id == _unit.id,
-                )
-            )
-            unit_result = await session.execute(unit_statement)
-            _unit = unit_result.scalar()
-            parents["unit_type_id"] = _unit.primary_id
+            parents["unit_type_id"] = await unit_type.get_primary_id(session, _unit.id, replay.release_string)
 
-        # Not all objects have an owner. They may have references in events, though.
         if _player:
-            player_statement = select(player).where(
-                and_(player.info_id == _info.primary_id, player.pid == _player.pid)
-            )
-            player_result = await session.execute(player_statement)
-            _player = player_result.scalar()
-
-            parents["owner_id"] = _player.primary_id
+            parents["owner_id"] = await player.get_primary_id(session, _player.pid, parents["info_id"])
 
         return parents
+
+    @classmethod
+    async def get_primary_id(cls, session, id, info_id):
+        if (id, info_id) in cls._cache:
+            return cls._cache[(id, info_id)]
+
+        statement = select(cls.primary_id).where(and_(cls.info_id==info_id, cls.id == id))
+        result = await session.execute(statement)
+
+        cls._cache[(id, info_id)] = result.scalar()
+        return cls._cache[(id, info_id)]
 
     @classmethod
     def get_data(cls, obj):

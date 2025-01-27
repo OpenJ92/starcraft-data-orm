@@ -51,20 +51,11 @@ class basic_command_event(Injectable, WarehouseBase):
 
     @classmethod
     async def process_dependancies(cls, event, replay, session):
-        _player, _info, _ability = event.player.pid, replay.filehash, event.ability
+        _player, _info, _ability = event.player, replay.filehash, event.ability
         parents = defaultdict(lambda: None)
 
-        info_statement = select(info).where(info.filehash == _info)
-        info_result = await session.execute(info_statement)
-        _info = info_result.scalar()
-        parents["info_id"] = _info.primary_id
-
-        player_statement = select(player).where(
-            and_(player.pid == _player, player.info_id == _info.primary_id)
-        )
-        player_result = await session.execute(player_statement)
-        _player = player_result.scalar()
-        parents["player_id"] = _player.primary_id
+        parents["info_id"] = await info.get_primary_id(session, _info)
+        parents["player_id"] = await player.get_primary_id(session, _player.pid, parents["info_id"])
 
         if not event.ability:
             return parents

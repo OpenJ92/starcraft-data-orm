@@ -6,10 +6,12 @@ from sqlalchemy.orm import relationship
 from starcraft_data_orm.inject import Injectable
 from starcraft_data_orm.warehouse.base import WarehouseBase
 
+from functools import lru_cache
 
 class user(Injectable, WarehouseBase):
     __tablename__ = "user"
     __table_args__ = (UniqueConstraint("uid", name="uid_unique"), {"schema": "replay"})
+    _cache = {}
 
     primary_id = Column(Integer, primary_key=True)
 
@@ -41,6 +43,17 @@ class user(Injectable, WarehouseBase):
         statement = select(cls).where(cls.uid == obj.detail_data["bnet"]["uid"])
         result = await session.execute(statement)
         return result.scalar()
+
+    @classmethod
+    async def get_primary_id(cls, session, uid):
+        if uid in cls._cache:
+            return cls._cache[uid]
+
+        statement = select(cls.primary_id).where(cls.uid==uid)
+        result = await session.execute(statement)
+
+        cls._cache[uid] = result.scalar()
+        return cls._cache[uid]
 
     @classmethod
     def get_data(cls, obj):

@@ -28,6 +28,7 @@ class info(Injectable, WarehouseBase):
         UniqueConstraint("filehash", name="filehash_unique"),
         {"schema": "replay"},
     )
+    _cache = {}
 
     primary_id = Column(Integer, primary_key=True)
 
@@ -96,7 +97,7 @@ class info(Injectable, WarehouseBase):
 
     @classmethod
     async def process_existence(cls, replay, session):
-        statement = select(cls).where(cls.filehash == replay.filehash)
+        statement = select(cls.primary_id).where(cls.filehash==replay.filehash)
         result = await session.execute(statement)
         return result.scalar()
 
@@ -117,15 +118,16 @@ class info(Injectable, WarehouseBase):
        return parents
 
     @classmethod
-    def get_primary_id(cls, session):
+    async def get_primary_id(cls, session, filehash):
+        if filehash in cls._cache:
+            return cls._cache[filehash]
 
-        @lru_cache(maxsize=10000)
-        async def cached_get_primary_id(filehash):
-            statement = select(cls.primary_id).where(cls.filehash==filehash)
-            result = await session.execute(statement)
-            return result.scalar()
+        statement = select(cls.primary_id).where(cls.filehash==filehash)
+        result = await session.execute(statement)
 
-        return cached_get_primary_id
+        cls._cache[filehash] = result.scalar()
+
+        return cls._cache[filehash]
 
     columns = {
         "filename",
