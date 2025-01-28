@@ -15,6 +15,7 @@ from sqlalchemy.orm import relationship
 from collections import defaultdict
 from functools import lru_cache
 
+from starcraft_data_orm.util.LRUCache import LRUCache
 from starcraft_data_orm.warehouse.replay.info import info
 from starcraft_data_orm.warehouse.replay.user import user
 from starcraft_data_orm.warehouse.base import WarehouseBase
@@ -27,7 +28,7 @@ class player(Injectable, WarehouseBase):
         UniqueConstraint("pid", "info_id", name="pid_info_id_unique"),
         {"schema": "replay"},
     )
-    _cache = {}
+    _cache = LRUCache(maxsize=600)
 
     primary_id = Column(Integer, primary_key=True)
 
@@ -94,14 +95,17 @@ class player(Injectable, WarehouseBase):
 
     @classmethod
     async def get_primary_id(cls, session, pid, info_id):
-        if (pid, info_id) in cls._cache:
-            return cls._cache[(pid, info_id)]
+        cached_value = cls._cache.get((pid, info_id))
+        if cached_value is not None:
+            return cached_value
 
         statement = select(cls.primary_id).where(and_(cls.info_id==info_id, cls.pid == pid))
         result = await session.execute(statement)
 
-        cls._cache[(pid, info_id)] = result.scalar()
-        return cls._cache[(pid, info_id)]
+        primary_id = result.scalar()
+        cls._cache.set((pid, info_id), primary_id)
+
+        return primary_id
 
     columns = {
         "pid",

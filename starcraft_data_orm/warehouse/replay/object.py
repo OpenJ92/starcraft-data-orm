@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import insert
 from collections import defaultdict
 from functools import lru_cache
 
+from starcraft_data_orm.util.LRUCache import LRUCache
 from starcraft_data_orm.inject import Injectable
 from starcraft_data_orm.warehouse.base import WarehouseBase
 
@@ -18,7 +19,7 @@ from starcraft_data_orm.warehouse.datapack.unit_type import unit_type
 class object(Injectable, WarehouseBase):
     __tablename__ = "object"
     __table_args__ = {"schema": "replay"}
-    _cache = {}
+    _cache = LRUCache(maxsize=20000)
 
     primary_id = Column(Integer, primary_key=True)
 
@@ -90,14 +91,17 @@ class object(Injectable, WarehouseBase):
 
     @classmethod
     async def get_primary_id(cls, session, id, info_id):
-        if (id, info_id) in cls._cache:
-            return cls._cache[(id, info_id)]
+        cached_value = cls._cache.get((id, info_id))
+        if cached_value is not None:
+            return cached_value
 
         statement = select(cls.primary_id).where(and_(cls.info_id==info_id, cls.id == id))
         result = await session.execute(statement)
 
-        cls._cache[(id, info_id)] = result.scalar()
-        return cls._cache[(id, info_id)]
+        primary_id = result.scalar()
+        cls._cache.set((id, info_id), primary_id)
+
+        return primary_id
 
     @classmethod
     def get_data(cls, obj):

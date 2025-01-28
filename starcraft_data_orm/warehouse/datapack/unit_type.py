@@ -13,6 +13,7 @@ from sqlalchemy.orm import relationship
 
 from functools import lru_cache
 
+from starcraft_data_orm.util.LRUCache import LRUCache
 from starcraft_data_orm.inject import Injectable
 from starcraft_data_orm.warehouse.base import WarehouseBase
 
@@ -25,7 +26,7 @@ class unit_type(WarehouseBase, Injectable):
         ),
         {"schema": "datapack"},
     )
-    _cache = {}
+    _cache = LRUCache(maxsize=20000)
 
     primary_id = Column(Integer, primary_key=True)
     release_string = Column(Text)
@@ -74,14 +75,17 @@ class unit_type(WarehouseBase, Injectable):
 
     @classmethod
     async def get_primary_id(cls, session, id, release_string):
-        if (id, release_string) in cls._cache:
-            return cls._cache[(id, release_string)]
+        cached_value = cls._cache.get((id, release_string))
+        if cached_value is not None:
+            return cached_value
 
-        statement = select(cls.primary_id).where(and_(cls.release_string==release_string, cls.id == id))
+        statement = select(cls.primary_id).where(and_(cls.id==id,cls.release_string==release_string))
         result = await session.execute(statement)
 
-        cls._cache[(id, release_string)] = result.scalar()
-        return cls._cache[(id, release_string)]
+        primary_id = result.scalar()
+        cls._cache.set((id, release_string), primary_id)
+
+        return primary_id
 
     columns = {
         "id",
