@@ -3,6 +3,7 @@ from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import relationship
 
+from starcraft_data_orm.util.LRUCache import LRUCache
 from starcraft_data_orm.inject import Injectable
 from starcraft_data_orm.warehouse.base import WarehouseBase
 
@@ -11,7 +12,7 @@ from functools import lru_cache
 class user(Injectable, WarehouseBase):
     __tablename__ = "user"
     __table_args__ = (UniqueConstraint("uid", name="uid_unique"), {"schema": "replay"})
-    _cache = {}
+    _cache = LRUCache(maxsize=600)
 
     primary_id = Column(Integer, primary_key=True)
 
@@ -46,14 +47,17 @@ class user(Injectable, WarehouseBase):
 
     @classmethod
     async def get_primary_id(cls, session, uid):
-        if uid in cls._cache:
-            return cls._cache[uid]
+        cached_value = cls._cache.get(uid)
+        if cached_value is not None:
+            return cached_value
 
         statement = select(cls.primary_id).where(cls.uid==uid)
         result = await session.execute(statement)
 
-        cls._cache[uid] = result.scalar()
-        return cls._cache[uid]
+        primary_id = result.scalar()
+        cls._cache.set(uid, primary_id)
+
+        return primary_id
 
     @classmethod
     def get_data(cls, obj):

@@ -41,10 +41,9 @@ class unit_born_event(Injectable, WarehouseBase):
             data = cls.get_data(event)
             parents = await cls.process_dependancies(event, replay, session)
 
-            _events.append({**data, **parents})
+            _events.append(cls({**data, **parents}))
 
-        statement = insert(unit_born_event).values(_events)
-        await session.execute(statement)
+        session.add_all(_events)
 
     @classmethod
     async def process_dependancies(cls, event, replay, session):
